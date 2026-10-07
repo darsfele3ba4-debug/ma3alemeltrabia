@@ -84,7 +84,7 @@ function startGame(type) {
     const src = D[type] || [];
     gameState.tempData = shuffleArray(src);
     gameState.total = src.length;
-    document.querySelectorAll('.total-count').forEach(e => e.innerText = gameState.total);
+    document.querySelectorAll('.total-count').forEach(e => e.innerText = toAr(gameState.total));
     showScreen(type);
     if (type === 'mcq') loadMCQ();
     else if (type === 'match') loadMatchRound();
@@ -96,20 +96,30 @@ function startGame(type) {
     else if (type === 'goal') loadGoal();
 }
 
-function updateScoreDisplay() { document.getElementById('current-score').innerText = gameState.score; }
+function updateScoreDisplay() { document.getElementById('current-score').innerText = toAr(gameState.score); }
 function setProgress(id) { document.getElementById(id).style.width = `${(gameState.questionIndex / gameState.total) * 100}%`; }
 
 function endGame() {
-    document.getElementById('endgame-score').innerText = gameState.score;
-    const r = gameState.score / gameState.total;
-    document.getElementById('endgame-msg').innerText = r === 1 ? 'بطل حقيقى! درجة نهائية 🌟' : r >= 0.8 ? 'ممتاز! أداء رائع 👏' : r >= 0.5 ? 'جيد، راجع الدرس وحاول مرة أخرى 💪' : 'لا تيأس! راجع الدرس ثم أعد المحاولة 📘';
-    if (gameState.activeGame === 'tug') {
-        const p = gameState.tugPos;
-        document.getElementById('endgame-msg').innerText = p > 0 ? 'فاز فريقك فى شد الحبل! 🏆' : p < 0 ? 'فاز المنافس هذه المرة .. أعد المحاولة 💪' : 'تعادل! الحبل فى المنتصف 🤝';
-    } else if (gameState.activeGame === 'goal') {
-        document.getElementById('endgame-msg').innerText = 'سجّلت ' + toAr(gameState.score) + ' أهداف ⚽ ' + document.getElementById('endgame-msg').innerText;
-    }
-    (gameState.score / gameState.total >= 0.5) ? SFX.fanfare() : SFX.wrong();
+    const sc = gameState.score, tot = gameState.total, r = tot ? sc / tot : 0, pct = Math.round(r * 100);
+    const g = gameState.activeGame;
+    document.getElementById('endgame-game').innerText = titles[g] || '';
+    document.getElementById('endgame-score').innerText = toAr(sc);
+    document.getElementById('endgame-total').innerText = toAr(tot);
+    document.getElementById('endgame-right').innerText = toAr(sc);
+    document.getElementById('endgame-wrong').innerText = toAr(tot - sc);
+    document.getElementById('endgame-pct').innerText = toAr(pct) + '٪';
+    const ring = document.getElementById('endgame-ring');
+    const col = r >= 0.8 ? '#16a34a' : r >= 0.5 ? '#eb8a39' : '#dc2626';
+    ring.style.background = `conic-gradient(${col} ${pct * 3.6}deg, #e5e7eb 0)`;
+    document.getElementById('endgame-score').style.color = col;
+    const stars = r >= 0.9 ? 3 : r >= 0.6 ? 2 : r >= 0.3 ? 1 : 0;
+    document.getElementById('endgame-stars').innerHTML = [0, 1, 2].map(i => `<i class="fa-solid fa-star ${i < stars ? 'on' : ''}" style="animation-delay:${0.2 + i * 0.25}s"></i>`).join('');
+    document.getElementById('endgame-title').innerText = r === 1 ? 'درجة نهائية! 🏆' : r >= 0.8 ? 'نتيجة ممتازة! 🌟' : r >= 0.5 ? 'نتيجة جيدة 👍' : 'تحتاج إلى مراجعة 📘';
+    let msg = r === 1 ? 'بطل حقيقى! أجبت عن كل الأسئلة إجابة صحيحة' : r >= 0.8 ? 'أداء رائع .. استمر على هذا المستوى 👏' : r >= 0.5 ? 'جيد، راجع الأخطاء وحاول مرة أخرى 💪' : 'لا تيأس! راجع الدرس ثم أعد المحاولة';
+    if (g === 'tug') { const p = gameState.tugPos; msg = (p > 0 ? 'فاز فريقك فى شد الحبل! 🏆' : p < 0 ? 'فاز المنافس هذه المرة .. أعد المحاولة 💪' : 'تعادل! الحبل فى المنتصف 🤝'); }
+    else if (g === 'goal') msg = 'سجّلت ' + toAr(sc) + ' من ' + toAr(tot) + ' أهداف ⚽ — ' + msg;
+    document.getElementById('endgame-msg').innerText = msg;
+    (r >= 0.5) ? SFX.fanfare() : SFX.wrong();
     document.getElementById('endgame-modal').classList.remove('hidden');
 }
 
