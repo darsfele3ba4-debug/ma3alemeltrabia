@@ -72,12 +72,14 @@ function goHome() {
     document.getElementById('feedback-modal').classList.add('hidden');
     document.getElementById('endgame-modal').classList.add('hidden');
     gameState.onFeedbackClose = null; gameState.activeGame = null;
+    const ct = document.getElementById('cheer-toast'); if (ct) ct.className = 'copy-toast';
     showScreen('home');
 }
 
 function startGame(type) {
     if (!D) { alert('جارٍ تحميل الأسئلة... حاول مرة أخرى'); return; }
     document.getElementById('endgame-modal').classList.add('hidden');
+    const ct = document.getElementById('cheer-toast'); if (ct) ct.className = 'copy-toast';
     gameState.activeGame = type; gameState.score = 0; gameState.questionIndex = 0; gameState.subLevel = 0;
     const src = D[type] || [];
     gameState.tempData = shuffleArray(src);
